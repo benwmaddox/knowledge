@@ -1,4 +1,6 @@
 <html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 
 <head>
     <style>
@@ -9,15 +11,10 @@
 
         #editor {
             width: 100%;
-            height: calc(100%-30px);
+            min-height: calc(100%-30px);
             padding: 6px;
-        }
-
-        .link {
-            color: blue;
-            cursor: pointer;
-            text-decoration: underline;
-            cursor: pointer;
+            border-bottom: 2px solid black;
+            border-top: 2px solid black;
         }
 
         body {
@@ -42,18 +39,12 @@
 <script type="text/javascript">
     var $pageName = document.getElementById('pageName');
     var editor = document.getElementById('editor');
+    var pages = {};
+    var currentPageName = 'Home';
 
     editor.addEventListener('keydown', function (ev) {
-        // if (ev.ctrlKey && ev.code == "KeyS") {
-        //     ev.stopPropagation();
-        //     ev.preventDefault()
-        //     console.log('should save here')
-
-        // }
-        // else 
         if (ev.altKey && ev.code == "Enter") {
             var selection = window.getSelection();
-            // makeSelectionALink(selection);
         }
         else if (ev.ctrlKey && ev.code == "Enter") {
             console.log('should navigate here')
@@ -61,20 +52,17 @@
             makeSelectionALink(selection);
         }
         else {
-            console.log(ev);
-            var selection = window.getSelection();
-            if (withinBrackets(selection)) {
-                updateLinkFromSelection(selection);
-            }
-            pages[currentPageName].content = editor.innerHTML;
+
         }
     })
 
-    // function makeSelectionALink(selection) {
-    //     var parentNode = selection.focusNode.parentNode;
-    //     parentNode.classList.toggle('link');
-
-    // }
+    editor.addEventListener('keyup', function (ev) {
+        var selection = window.getSelection();
+        if (withinBrackets(selection)) {
+            updateLinkFromSelection(selection);
+        }
+        pages[currentPageName].content = editor.innerHTML;
+    });
     function withinBrackets(selection) {
         if (!selection.anchorNode.nodeValue) {
             return false;
@@ -106,9 +94,6 @@
         selection.anchorNode.remove();
     }
 
-    var pages = {};
-
-    var currentPageName = 'Home';
     function loadPage(pageName) {
         if (pages[pageName]) {
             editor.innerHTML = pages[pageName].content;
@@ -144,7 +129,6 @@
                         Here is a [[Test]] now only that should be a link.
                     </p>`,
                 backLinks: []
-
             }
         }
     }
@@ -160,9 +144,6 @@
     function storePages() {
         localStorage.setItem('pages', JSON.stringify(pages));
     }
-    window.onbeforeunload = storePages;
-
-    loadPage('Home');
 
     function localStorageTest() {
         if (localStorage && !localStorage.getItem('size')) {
@@ -180,6 +161,10 @@
         console.log('localStorage limit: ' + localStorage.getItem('size'))
         console.log('localStorage test limit: ' + localStorage.getItem('test'))
     }
+
+
+    window.onbeforeunload = storePages;
+    loadPage('Home');
 
 </script>
 
