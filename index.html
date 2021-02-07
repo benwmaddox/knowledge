@@ -1,0 +1,186 @@
+<html>
+
+<head>
+    <style>
+        #pageName {
+            height: 30px;
+            padding: 6px;
+        }
+
+        #editor {
+            width: 100%;
+            height: calc(100%-30px);
+            padding: 6px;
+        }
+
+        .link {
+            color: blue;
+            cursor: pointer;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        body {
+            margin: 0px;
+            padding: 0px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 id="pageName">Home</h2>
+    <div id="editor" contenteditable>
+        <h1>Minimal Personal Wiki</h1>
+        <p>
+            This is a paragraph
+        </p>
+        <p>
+            Here is a [[Test]] link now only that should be a link.
+        </p>
+    </div>
+</body>
+<script type="text/javascript">
+    var $pageName = document.getElementById('pageName');
+    var editor = document.getElementById('editor');
+
+    editor.addEventListener('keydown', function (ev) {
+        // if (ev.ctrlKey && ev.code == "KeyS") {
+        //     ev.stopPropagation();
+        //     ev.preventDefault()
+        //     console.log('should save here')
+
+        // }
+        // else 
+        if (ev.altKey && ev.code == "Enter") {
+            var selection = window.getSelection();
+            // makeSelectionALink(selection);
+        }
+        else if (ev.ctrlKey && ev.code == "Enter") {
+            console.log('should navigate here')
+            var selection = window.getSelection();
+            makeSelectionALink(selection);
+        }
+        else {
+            console.log(ev);
+            var selection = window.getSelection();
+            if (withinBrackets(selection)) {
+                updateLinkFromSelection(selection);
+            }
+            pages[currentPageName].content = editor.innerHTML;
+        }
+    })
+
+    // function makeSelectionALink(selection) {
+    //     var parentNode = selection.focusNode.parentNode;
+    //     parentNode.classList.toggle('link');
+
+    // }
+    function withinBrackets(selection) {
+        if (!selection.anchorNode.nodeValue) {
+            return false;
+        }
+        // I know, need refinement
+        return selection.anchorNode.nodeValue.substring(selection.baseOffset - 2).includes("]]")
+            && selection.anchorNode.nodeValue.substring(0, selection.baseOffset + 2).includes("[[")
+    }
+
+    function updateLinkFromSelection(selection) {
+        var startingIndex = selection.anchorNode.nodeValue.substring(0, selection.baseOffset).lastIndexOf("[[") + 2;
+        var endingIndex = startingIndex + selection.anchorNode.nodeValue.substring(startingIndex).indexOf("]]");
+
+        var linkText = selection.anchorNode.nodeValue.substring(startingIndex, endingIndex);
+        var parentNode = selection.anchorNode.parentNode;
+        var nodeIndex = Array.from(parentNode.childNodes).indexOf(selection.anchorNode);
+        var $preText = document.createTextNode(selection.anchorNode.nodeValue.substring(0, startingIndex - 2));
+        var $link = document.createElement("a");
+        var $linkText = document.createTextNode("[[" + linkText + "]]")
+        $link.setAttribute('href', `#${linkText}`);
+        $link.setAttribute('onclick', `loadPage('${linkText}')`);
+        $link.setAttribute('contenteditable', "false");
+        $link.appendChild($linkText);
+        var $postTest = document.createTextNode(selection.anchorNode.nodeValue.substring(endingIndex + 2));
+
+        parentNode.insertBefore($preText, selection.anchorNode);
+        parentNode.insertBefore($link, selection.anchorNode);
+        parentNode.insertBefore($postTest, selection.anchorNode);
+        selection.anchorNode.remove();
+    }
+
+    var pages = {};
+
+    var currentPageName = 'Home';
+    function loadPage(pageName) {
+        if (pages[pageName]) {
+            editor.innerHTML = pages[pageName].content;
+            // TODO: backlinks
+            $pageName.innerHTML = pageName;
+        }
+        else {
+            var pageContent = "<p>This is a new page.</p>";
+            editor.innerHTML = pageContent;
+            $pageName.innerHTML = pageName;
+            pages[pageName] = {
+                content: pageContent,
+                backLinks: []
+            }
+        }
+        currentPageName = pageName;
+        storePages();
+    }
+
+    function resetPages() {
+        pages = {
+            'Test': {
+                content: "<p>Sample extra page</p><p>Test part 2</p>",
+                backLinks: ['Home']
+            },
+            'Home': {
+                content: `
+                    <h1>Minimal Personal Wiki</h1>
+                    <p>
+                        This is a paragraph
+                    </p>
+                    <p>
+                        Here is a [[Test]] now only that should be a link.
+                    </p>`,
+                backLinks: []
+
+            }
+        }
+    }
+
+
+    var storedPages = localStorage.getItem('pages');
+    if (storedPages) {
+        pages = JSON.parse(storedPages);
+    }
+    else {
+        resetPages();
+    }
+    function storePages() {
+        localStorage.setItem('pages', JSON.stringify(pages));
+    }
+    window.onbeforeunload = storePages;
+
+    loadPage('Home');
+
+    function localStorageTest() {
+        if (localStorage && !localStorage.getItem('size')) {
+            var i = 0;
+            try {
+                // Test up to 10 MB
+                for (i = 250; i <= 100000; i += 250) {
+                    localStorage.setItem('test', new Array((i * 1024) + 1).join('a'));
+                }
+            } catch (e) {
+                localStorage.removeItem('test');
+                localStorage.setItem('size', i - 250);
+            }
+        }
+        console.log('localStorage limit: ' + localStorage.getItem('size'))
+        console.log('localStorage test limit: ' + localStorage.getItem('test'))
+    }
+
+</script>
+
+</html>
