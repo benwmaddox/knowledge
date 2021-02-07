@@ -35,9 +35,13 @@
             Here is a [[Test]] link now only that should be a link.
         </p>
     </div>
+    <div id="backLinks">
+
+    </div>
 </body>
 <script type="text/javascript">
     var $pageName = document.getElementById('pageName');
+    var $backLinks = document.getElementById('backLinks');
     var editor = document.getElementById('editor');
     var pages = {};
     var currentPageName = 'Home';
@@ -92,23 +96,31 @@
         parentNode.insertBefore($link, selection.anchorNode);
         parentNode.insertBefore($postTest, selection.anchorNode);
         selection.anchorNode.remove();
+
+        // TODO: How would I remove them?
+
+        if (!pages[linkText]) {
+            var pageContent = "<p>This is a new page.</p>";
+            pages[linkText] = {
+                content: pageContent,
+                backLinks: [currentPageName]
+            }
+        }
+
+        if (pages[linkText] && pages[linkText].backLinks.indexOf(currentPageName) == -1) {
+            pages[linkText].backLinks.push(currentPageName);
+        }
     }
 
     function loadPage(pageName) {
-        if (pages[pageName]) {
-            editor.innerHTML = pages[pageName].content;
-            // TODO: backlinks
-            $pageName.innerHTML = pageName;
-        }
-        else {
-            var pageContent = "<p>This is a new page.</p>";
-            editor.innerHTML = pageContent;
-            $pageName.innerHTML = pageName;
-            pages[pageName] = {
-                content: pageContent,
-                backLinks: []
-            }
-        }
+        editor.innerHTML = pages[pageName].content;
+        $pageName.innerHTML = pageName;
+        $backLinks.innerHTML =
+            (pages[pageName].backLinks.length > 0 ? "<p>Linked to page</p>" : '')
+            + `<ul>
+            ${pages[pageName].backLinks.map(x => `<li> <a href="#${x}" onclick="loadPage('${x}')">[[${x}]]</li>`)}
+            </ul>`;
+
         currentPageName = pageName;
         storePages();
     }
