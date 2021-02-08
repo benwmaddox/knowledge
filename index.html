@@ -21,6 +21,10 @@
             margin: 0px;
             padding: 0px;
         }
+
+        a {
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -29,10 +33,7 @@
     <div id="editor" contenteditable>
         <h1>Minimal Personal Wiki</h1>
         <p>
-            This is a paragraph
-        </p>
-        <p>
-            Here is a [[Test]] link now only that should be a link.
+            Trying to load full page from local storage. If you see this, there was an error.
         </p>
     </div>
     <div id="backLinks">
@@ -116,13 +117,18 @@
         editor.innerHTML = pages[pageName].content;
         $pageName.innerHTML = pageName;
         $backLinks.innerHTML =
-            (pages[pageName].backLinks.length > 0 ? "<p>Linked to page</p>" : '')
+            (pages[pageName].backLinks.length > 0 ? "<p>Linked from page</p>" : '')
             + `<ul>
-            ${pages[pageName].backLinks.map(x => `<li> <a href="#${x}" onclick="loadPage('${x}')">[[${x}]]</li>`)}
+                
+            ${pages[pageName].backLinks.map(x => `<li> ${makePageLink(x)}</li>`).join('')}
             </ul>`;
 
         currentPageName = pageName;
         storePages();
+    }
+
+    function makePageLink(pageName) {
+        return `<a href="#${pageName}" onclick="loadPage('${pageName}')">[[${pageName}]]</a>`;
     }
 
     function resetPages() {
@@ -138,23 +144,50 @@
                         This is a paragraph
                     </p>
                     <p>
-                        Here is a [[Test]] now only that should be a link.
-                    </p>`,
+                        Here is a ${makePageLink('Test')} now only that should be a link. 
+                        
+                        Feel free to type more. 
+                    </p>
+                    <p>
+                        If you enter a link like ${makePageLink('Other Page')}, it will make another page with that name. You can edit that page as well. Enjoy. 
+                    </p>
+                    <p>
+                        This is a prototype by Ben Maddox for a simple wiki system. The intention is for it to be extremely easy to add new pages and link to and from pages.
+                    </p>
+                    <p>
+                        If you are trying this on itty.bitty.site, the changes won't be stored between browser sessions. It requires localStorage access. See <a contenteditable="false" href="https://twitter.com/benwmaddox">@benwmaddox</a> for a standalone version.
+                    </p>
+                    
+                    `,
                 backLinks: []
+            },
+            'Other Page': {
+                content: '',
+                backLinks: ['Home']
             }
         }
     }
 
 
-    var storedPages = localStorage.getItem('pages');
-    if (storedPages) {
-        pages = JSON.parse(storedPages);
-    }
-    else {
+    try {
+        var storedPages = localStorage.getItem('pages');
+        if (storedPages) {
+            pages = JSON.parse(storedPages);
+        }
+        else {
+            resetPages();
+        }
+
+    } catch {
         resetPages();
     }
     function storePages() {
-        localStorage.setItem('pages', JSON.stringify(pages));
+        try {
+            localStorage.setItem('pages', JSON.stringify(pages));
+        }
+        catch {
+
+        }
     }
 
     function localStorageTest() {
