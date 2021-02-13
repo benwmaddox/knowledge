@@ -52,9 +52,15 @@
             var selection = window.getSelection();
         }
         else if (ev.ctrlKey && ev.code == "Enter") {
-            console.log('should navigate here')
             var selection = window.getSelection();
-            makeSelectionALink(selection);
+            var node = selection.anchorNode;
+            if (node.nextSibling && node.nextSibling.tagName == "A") {
+                node.nextSibling.click();
+            }
+            else if (node.previousSibling && node.previousSibling.tagName == "A") {
+                node.previousSibling.click();
+            }
+
         }
         else {
 
@@ -118,8 +124,7 @@
         $pageName.innerHTML = pageName;
         $backLinks.innerHTML =
             (pages[pageName].backLinks.length > 0 ? "<p>Linked from page</p>" : '')
-            + `<ul>
-                
+            + `<ul>                
             ${pages[pageName].backLinks.map(x => `<li> ${makePageLink(x)}</li>`).join('')}
             </ul>`;
 
