@@ -30,7 +30,7 @@
 
 <body>
     <h2 id="pageName">Home</h2>
-    <div id="editor" contenteditable>
+    <div id="editor" contenteditable aria-placeholder="Please type here">
         <h1>Minimal Personal Wiki</h1>
         <p>
             Trying to load full page from local storage. If you see this, there was an error.
@@ -52,9 +52,17 @@
             var selection = window.getSelection();
         }
         else if (ev.ctrlKey && ev.code == "Enter") {
+
+            debugger;
             var selection = window.getSelection();
             var node = selection.anchorNode;
-            if (node.nextSibling && node.nextSibling.tagName == "A") {
+            if (node && node.tagName == "A") {
+                node.click();
+            }
+            else if (node && node.childNodes.length == 1 && node.childNodes[0].tagName == "A") {
+                node.childNodes[0].click();
+            }
+            else if (node.nextSibling && node.nextSibling.tagName == "A") {
                 node.nextSibling.click();
             }
             else if (node.previousSibling && node.previousSibling.tagName == "A") {
@@ -107,7 +115,7 @@
         // TODO: How would I remove them?
 
         if (!pages[linkText]) {
-            var pageContent = "<p>This is a new page.</p>";
+            var pageContent = "";
             pages[linkText] = {
                 content: pageContent,
                 backLinks: [currentPageName]
@@ -130,6 +138,9 @@
 
         currentPageName = pageName;
         storePages();
+        if (editor) {
+            editor.focus();
+        }
     }
 
     function makePageLink(pageName) {
